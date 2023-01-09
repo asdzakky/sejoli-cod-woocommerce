@@ -244,15 +244,17 @@
                 url : baseURL,
                 type : 'POST',
                 data : {
-                    shipmentExpedition: $('#shipment-expedition').val(),
                     shipmentNumber: $('#shipment-number').val(),
                     nonce:  nonce
                 },
+                beforeSend: function() {
+			        $('input[name=submit-tracking]').val('Please Wait');
+			    },
                 success : function(response) {
+                	$('input[name=submit-tracking]').val('Search');
                     $('#shipment-history').html(response);
                 },
                 error: function (request, status, error) {
-                    console.log(request);
                     console.log(error);
                 }
             });

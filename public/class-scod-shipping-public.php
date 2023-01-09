@@ -533,16 +533,15 @@ class Front {
 				$shipping_instance_id = $shipping_method->get_instance_id();
 			}
 
-			$trace_tracking_arveoli_jne = API_ARVEOLI::set_params()->get_tracking( 'jne', $shipping_number );
-	        $trace_tracking_arveoli_sicepat = API_ARVEOLI::set_params()->get_tracking( 'sicepat', $shipping_number );
+			$trace_tracking_arveoli = API_ARVEOLI::set_params()->get_tracking( $shipping_number );
 
-            if ( ! is_wp_error( $trace_tracking_arveoli_jne ) || ! is_wp_error( $trace_tracking_arveoli_sicepat ) ) {
+            if ( ! is_wp_error( $trace_tracking_arveoli ) ) {
 
-                if( isset( $trace_tracking_arveoli_jne->jne ) && $trace_tracking_arveoli_jne->jne->status->code === 200 ):
+                if( $trace_tracking_arveoli->expedition === 'jne' ):
 
 			        require_once( plugin_dir_path( __FILE__ ) . 'partials/scod-jne-tracking.php' );
 
-				elseif( isset( $trace_tracking_arveoli_sicepat->sicepat ) && $trace_tracking_arveoli_sicepat->sicepat->status->code === 200 ):
+				elseif( $trace_tracking_arveoli->expedition === 'sicepat' ):
 
 			        require_once( plugin_dir_path( __FILE__ ) . 'partials/scod-sicepat-tracking.php' );
 
@@ -581,7 +580,6 @@ class Front {
 		
 		$params = wp_parse_args( $_POST, array(
             'shipmentNumber'     => NULL,
-            'shipmentExpedition' => NULL,
             'nonce' 		     => NULL
         ));
 
@@ -590,21 +588,21 @@ class Front {
             'message' => NULL
         ];
 
-        if( wp_verify_nonce( $params['nonce'], 'sejoli_shipment_tracking_result') && !empty($params['shipmentExpedition']) && !empty($params['shipmentNumber']) ) :
+        if( wp_verify_nonce( $params['nonce'], 'sejoli_shipment_tracking_result') ) :
 
             unset( $params['nonce'] );
              
-            $trace_tracking_arveoli = API_ARVEOLI::set_params()->get_tracking( $params['shipmentExpedition'], $params['shipmentNumber'] );
+            $trace_tracking_arveoli = API_ARVEOLI::set_params()->get_tracking( $params['shipmentNumber'] );
 
             if ( ! is_wp_error( $trace_tracking_arveoli ) ) {
 
                 $respond['valid']  = true;
 
-                if( $trace_tracking_arveoli->jne->status->code === 200 ):
+                if( $trace_tracking_arveoli->expedition === 'jne' ):
 
 			        require_once( plugin_dir_path( __FILE__ ) . 'partials/scod-jne-tracking.php' );
 
-				elseif( $trace_tracking_arveoli->sicepat->status->code === 200 ):
+				elseif( $trace_tracking_arveoli->expedition === 'sicepat' ):
 
 			        require_once( plugin_dir_path( __FILE__ ) . 'partials/scod-sicepat-tracking.php' );
 
@@ -1044,13 +1042,17 @@ class Front {
 
 			if( \str_contains( strtolower( $shipping_name ), 'jne' ) ):
 				if($shipping_name == "JNE - REG") {
-					$shipping_service = "REG";
+					$shipping_service = "REG19";
 				} elseif($shipping_name == "JNE - OKE") {
-					$shipping_service = "OKE";
+					$shipping_service = "OKE19";
 				} elseif($shipping_name == "JNE - YES") {
-					$shipping_service = "YES";
+					$shipping_service = "YES19";
+				} elseif($shipping_name == "JNE - JTR>250") {
+					$shipping_service = "JTR>250";
+				} elseif($shipping_name == "JNE - JTR<150") {
+					$shipping_service = "JTR<150";
 				} else {
-					$shipping_service = "JTR";
+					$shipping_service = "JTR18";
 				}
 			endif;
 

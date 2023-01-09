@@ -18,7 +18,7 @@ function scod_update_order_callback( $request_data ) {
     
     $parameters = $request_data->get_params();
     
-    $order_id     = isset($parameters['order_id']) ? $parameters['order_id'] :'';
+    $order_id        = isset($parameters['order_id']) ? $parameters['order_id'] :'';
     $shipment_number = isset($parameters['shipment_number']) ? $parameters['shipment_number'] :'';
     
     if ( $order_id && $shipment_number ) {

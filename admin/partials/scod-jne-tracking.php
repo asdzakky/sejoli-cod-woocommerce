@@ -1,7 +1,7 @@
 <?php ob_start(); ?>
-aaaaaaaa
+
 <h6><?php echo __('Number Resi:', 'scod-shipping'); ?></h6>
-<div class="shipping-number" style="font-size:26px;"><b><?php echo $params['shipmentNumber']; ?></b></div>
+<div class="shipping-number" style="font-size:26px;"><b><?php echo $trace_tracking_arveoli->cnote->cnote_no; ?></b></div>
 
 <h6><?php echo __('Shipping Details:', 'scod-shipping'); ?></h6>
 <table style="text-align: left;">
@@ -11,7 +11,7 @@ aaaaaaaa
 </tr>
 <tr>
 	<th><?php echo __('Total Price:', 'scod-shipping'); ?></th>
-	<td><?php echo sejolisa_price_format( $trace_tracking_arveoli->cnote->cnote_amount ); ?></td>
+	<td><?php echo wc_price( $trace_tracking_arveoli->cnote->cnote_amount ); ?></td>
 </tr>
 <tr>
 	<th><?php echo __('Weight:', 'scod-shipping'); ?></th>
@@ -27,19 +27,19 @@ aaaaaaaa
 </tr>
 <tr>
 	<th><?php echo __('Shipper Address:', 'scod-shipping'); ?></th>
-	<td><?php echo $trace_tracking_arveoli->detail[0]->cnote_shipper_addr1. ' ' .$trace_tracking_arveoli->detail[0]->cnote_shipper_addr2; ?></td>';
+	<td><?php echo $trace_tracking_arveoli->detail[0]->cnote_shipper_addr1. ' ' .$trace_tracking_arveoli->detail[0]->cnote_shipper_addr2. ' ' .$trace_tracking_arveoli->detail[0]->cnote_shipper_city; ?></td>
 </tr>
 <tr>
 	<th><?php echo __('To:', 'scod-shipping'); ?></th>
-	<td><?php echo $trace_tracking_arveoli->cnote->cnote_receiver_name; ?></td>
+	<td><?php echo  $trace_tracking_arveoli->detail[0]->cnote_receiver_name; ?></td>
 </tr>
 <tr>
 	<th><?php echo __('Receiver Address:', 'scod-shipping'); ?></th>
-	<td><?php echo $trace_tracking_arveoli->cnote->city_name; ?></td>
+	<td><?php echo $trace_tracking_arveoli->detail[0]->cnote_receiver_addr1. ' ' .$trace_tracking_arveoli->detail[0]->cnote_receiver_addr2. ' ' .$trace_tracking_arveoli->detail[0]->cnote_receiver_city; ?></td>
 </tr>
 <tr>
 	<th><?php echo __('Receiver:', 'scod-shipping'); ?></th>
-	<td><?php echo $trace_tracking_arveoli->cnote->cnote_pod_receiver.' - '.date_i18n( 'F d, Y H:i:s', strtotime$trace_tracking_arveoli->cnote->cnote_pod_date ) ); ?></td>';
+	<td><?php echo $trace_tracking_arveoli->cnote->cnote_receiver_name.' - '.date_i18n( 'F d, Y H:i:s', strtotime($trace_tracking_arveoli->cnote->cnote_pod_date ) ); ?></td>
 </tr>
 <tr>
 	<th><?php echo __('Last Status:', 'scod-shipping'); ?></th>

@@ -557,6 +557,8 @@ class Admin {
 		$shipping_price				= $order_data['shipping_total'];
 		$packageAmount				= ($order_total - $shipping_price) - $fee_total;
 		$note 						= $order_data['customer_note'];
+		$member_id					= $order_data['id'];
+		$member_name				= $order_data['shipping']['first_name'].' '.$order_data['shipping']['last_name'];
 
 		$getStatesName = DB::table( 'scod_shipping_state' )
                 ->where( 'ID', $order_shipping_state )
@@ -591,13 +593,17 @@ class Admin {
 
 		if( \str_contains( strtolower( $shipping_name ), 'jne' ) ):
 			if($shipping_name == "JNE - REG") {
-				$shipping_service = "REG";
+				$shipping_service = "REG19";
 			} elseif($shipping_name == "JNE - OKE") {
-				$shipping_service = "OKE";
+				$shipping_service = "OKE19";
 			} elseif($shipping_name == "JNE - YES") {
-				$shipping_service = "YES";
+				$shipping_service = "YES19";
+			} elseif($shipping_name == "JNE - JTR>250") {
+				$shipping_service = "JTR>250";
+			} elseif($shipping_name == "JNE - JTR<150") {
+				$shipping_service = "JTR<150";
 			} else {
-				$shipping_service = "JTR";
+				$shipping_service = "JTR18";
 			}
 		endif;
 
@@ -702,14 +708,14 @@ class Admin {
 		// Shipping Number Metabox Field
 	    $shipping_number = get_post_meta( $post->ID, '_sejoli_shipping_number', true );
 	    $number_awb      = !empty( $shipping_number ) ? esc_attr( $shipping_number ) : '';
-
+	    
 		if( \str_contains( strtolower( $shipping_name ), 'jne' ) ):
 
-			$trace_tracking_arveoli_jne = API_ARVEOLI::set_params()->get_tracking( 'sicepat', $number_awb );
+			$trace_tracking_arveoli = API_ARVEOLI::set_params()->get_tracking( $number_awb );
 
 		   	if( $number_awb ) {
 
-		   		if ( ! is_wp_error( $trace_tracking_arveoli_jne ) ) {
+		   		if ( ! is_wp_error( $trace_tracking_arveoli ) ) {
 
 	                if( isset( $trace_tracking_arveoli->cnote ) ):
 
@@ -764,6 +770,8 @@ class Admin {
 			   		data-codflag="'.$codflag.'"
 			   		data-codamount="'.$order_total.'"
 			   		data-shipping-price="'.$shipping_price.'"
+			   		data-member-id="'.$member_id.'"
+			   		data-member-name="'.$member_name.'"
 			   		class="button button-primary generate-airwaybill">'.__("Request Pickup", "scod-shipping").'</a>';
 
 			   	}
@@ -774,13 +782,13 @@ class Admin {
 
 		if( \str_contains( strtolower( $shipping_name ), 'sicepat' ) ):
 			
-			$trace_tracking_arveoli_sicepat = API_ARVEOLI::set_params()->get_tracking( 'sicepat', $number_awb );
+			$trace_tracking_arveoli = API_ARVEOLI::set_params()->get_tracking( $number_awb );
 
 		   	if( $number_awb ) {
 
-		   		if ( ! is_wp_error( $trace_tracking_arveoli_sicepat ) ) {
+		   		if ( ! is_wp_error( $trace_tracking_arveoli ) ) {
 
-	                if( isset( $trace_tracking_arveoli_sicepat->sicepat ) && $trace_tracking_arveoli_sicepat->sicepat->status->code === 200 ):
+	                if( isset( $trace_tracking_arveoli ) ):
 
 	                	require_once( plugin_dir_path( __FILE__ ) . 'partials/scod-sicepat-tracking.php' );
 
@@ -833,6 +841,8 @@ class Admin {
 			   		data-codflag="'.$codflag.'"
 			   		data-codamount="'.$order_total.'"
 			   		data-shipping-price="'.$shipping_price.'"
+			   		data-member-id="'.$member_id.'"
+			   		data-member-name="'.$member_name.'"
 			   		class="button button-primary generate-airwaybill">'.__("Request Pickup", "scod-shipping").'</a>';
 
 			   	}
@@ -850,6 +860,7 @@ class Admin {
 	 */
     // Save the data of the Meta field
     public function save_wc_order_shipping_number_fields( $post_id ) {
+	    
 	    // Only for shop order
 	    $setPostType = isset($_POST['post_type']) ? $_POST['post_type'] : '';
 	    if ( 'shop_order' != $setPostType )
@@ -875,6 +886,7 @@ class Admin {
 
 	    // Saving the data
 	    update_post_meta( $post_id, '_sejoli_shipping_number', sanitize_text_field( $_POST[ 'sejoli_shipping_number' ] ) );
+    
     }
 
     /**
@@ -884,10 +896,12 @@ class Admin {
 	 */
 	// Display field value on the order edit page (not in custom fields metabox)
 	public function shipping_number_field_display_admin_order_meta($order){
+
 	    $shipping_number = get_post_meta( $order->get_id(), '_sejoli_shipping_number', true );
 	    if ( ! empty( $shipping_number ) ) {
 	        echo '<p><strong>'. __("Shipping Number", "scod-shipping").':</strong><mark class="order-status">' . get_post_meta( $order->get_id(), '_sejoli_shipping_number', true ) . '</mark></p>';
 	    }
+
 	}
 	
 	/**
@@ -932,6 +946,8 @@ class Admin {
             'codflag'		      => NULL,
             'codAmount' 	      => NULL,
             'shippingPrice' 	  => NULL,
+            'member_id'			  => NULL,
+            'member_name'		  => NULL,
             'nonce' 		      => NULL
         ));
 
@@ -950,9 +966,13 @@ class Admin {
 
                 $respond['valid']  = true;
 
+                if( true !== $do_update->status ) {
+                	return false;
+                }
+
 		        $order 	  	= wc_get_order( $params['orderID'] );
 		        $order_id 	= $order->get_id();
-		        $numberResi = $do_update->no_resi;
+		        $numberResi = $do_update->data->no_resi;
 		        $status 	= "on-the-way";
    
 				if ( $order_id > 0 ) {
@@ -989,7 +1009,6 @@ class Admin {
 
                 $respond['message'] = $do_update->get_error_message();
             }
-
 
         endif;
 
@@ -1040,8 +1059,8 @@ class Admin {
 		    $order = wc_get_order( $result->ID );
 		    $shipping_number = get_post_meta( $order_id, '_sejoli_shipping_number', true );
 
-		    $trace_tracking_arveoli_jne = API_ARVEOLI::set_params()->get_tracking( 'jne', $shipping_number );
-	        $trace_tracking_arveoli_sicepat = API_ARVEOLI::set_params()->get_tracking( 'sicepat', $shipping_number );
+		    $trace_tracking_arveoli_jne = API_ARVEOLI::set_params()->get_tracking( $shipping_number );
+	        $trace_tracking_arveoli_sicepat = API_ARVEOLI::set_params()->get_tracking( $shipping_number );
 
 			$tracking_pod_status_jne = ( isset($trace_tracking_arveoli_jne->cnote->pod_status) ? $trace_tracking_arveoli_jne->cnote->pod_status : false );
 		    if( false !== $tracking_pod_status_jne ) :

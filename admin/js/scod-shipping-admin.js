@@ -42,6 +42,8 @@
             let codflag             = $(this).data('codflag');
             let codAmount           = $(this).data('codamount');
             let shippingPrice       = $(this).data('shipping-price');
+            let memberID            = $(this).data('member-id');
+            let memberName          = $(this).data('member-name');
             let baseURL             = scod_admin_ajax.generate_airwaybill.ajaxurl;
             let nonce               = scod_admin_ajax.generate_airwaybill.nonce;
 
@@ -88,9 +90,12 @@
                         codflag: codflag,
                         codAmount: codAmount,
                         shippingPrice: shippingPrice,
+                        memberID: memberID,
+                        memberName: memberName,
                         nonce: nonce
                     },
                     success : function(response) {
+                        console.log(response);
                         if(response > 0) {
                             alert('No. Resi: ' + response);
                             $('input#sejoli_shipping_number').val(response);

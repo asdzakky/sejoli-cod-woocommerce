@@ -288,9 +288,6 @@ class SCOD {
 		error_log( 'Creating new order data ..' );
 		try {
 
-			$this->endpoint = 'wp-json/scod/v1/orders';
-			$this->method 	= 'POST';
-
 			$body_params = wp_parse_args( $params, array(
 				'store_id'		       => NULL,
 				'secret_key'	       => NULL,
@@ -344,44 +341,44 @@ class SCOD {
 			}
 
 			//Always validate token first before doing request
-			if( $token = $this->get_token() ) {
 
-				// Validate token if set
-				if( $token ) {
-					$validate_token = $this->validate_token( $token );
-	
-					// Get new token
-					if( ! $validate_token ) {
-						
-						// Get order shipping instance
-						$order = $body_params['order'];
-						$shipping_method_instance_id = null;
+			$token = $this->get_token();
 
-						foreach( $order->get_items( 'shipping' ) as $item_id => $item ){
-							$shipping_method_instance_id = $item->get_instance_id(); // The instance ID
-						}
+			$validate_token = $this->validate_token( $token );
 
-						if( $shipping_method_instance_id ) {
-							
-							$shipping_instance = new Shipping_Method( $shipping_method_instance_id );
-							$username = $shipping_instance->get_option( 'scod_username' );
-							$password = $shipping_instance->get_option( 'scod_password' );
+			// Get new token
+			if( ! $validate_token ) {
+				
+				// Get order shipping instance
+				$order = $body_params['order'];
+				$shipping_method_instance_id = null;
 
-							if( $username && $password ) {
-								$token = $this->get_new_token( $username, $password );
+				foreach( $order->get_items( 'shipping' ) as $item_id => $item ){
+					$shipping_method_instance_id = $item->get_instance_id(); // The instance ID
+				}
 
-								if( is_wp_error( $token ) ) {
-									return new \WP_Error( 'invalid_token', 'Token is invalid.' );
-								}
-							}
-						} else {
-							return new \WP_Error( 'invalid_token', 'Failed to get new token.' );
+				if( $shipping_method_instance_id ) {
+					
+					$shipping_instance = new Shipping_Method( $shipping_method_instance_id );
+					$username = $shipping_instance->get_option( 'scod_username' );
+					$password = $shipping_instance->get_option( 'scod_password' );
+
+					if( $username && $password ) {
+						$token = $this->get_new_token( $username, $password );
+
+						if( is_wp_error( $token ) ) {
+							return new \WP_Error( 'invalid_token', 'Token is invalid.' );
 						}
 					}
-
-					$this->set_token( $token );
+				} else {
+					return new \WP_Error( 'invalid_token', 'Failed to get new token.' );
 				}
 			}
+
+			$this->set_token( $token );
+
+			$this->endpoint = 'wp-json/scod/v1/orders';
+			$this->method 	= 'POST';
 
 			unset( $body_params['order'] );
 			$set_body 	  = $this->set_body_params( $body_params );

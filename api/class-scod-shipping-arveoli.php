@@ -30,8 +30,8 @@ class ARVEOLI extends \SCOD_Shipping\API {
      */
 	public static function set_sandbox_data() {
 
-		$access_key = 'c8gk4wggsoock40gkwo4kc8c8swo08g04scwkcos';
-		$app_key    = 'cxrucexvrel5QLO0LFfRlAMXXPLKsAv0sT5VifKq';
+		$access_key = '08gwkwoocwc0ww84kcskks4c0goswkgwo8wkocwo';
+		$app_key    = 'testDev';
 
 		self::$headers = array(
 			'access-key' => $access_key,
@@ -71,15 +71,15 @@ class ARVEOLI extends \SCOD_Shipping\API {
 			'Accept' 	   => 'application/json'
 		];
 
-		if( $is_sandbox ):
+		// if( $is_sandbox ):
 
 			self::set_sandbox_data();
 
-		else:
+		// else:
 
-			self::set_live_data();
+			// self::set_live_data();
 
-		endif;
+		// endif;
 
 		return new static;
 
@@ -113,11 +113,12 @@ class ARVEOLI extends \SCOD_Shipping\API {
      * 
      * @return 	(array|WP_Error) The response array or a WP_Error on failure
      */
-	public static function get_origin( string $city ) {
+	public static function get_origin( string $expedition, string $city ) {
 
 		try {
 
-			self::$endpoint = 'https://apiv3.arveoli.com/api/region/origins/jne?query='.$city;
+			// self::$endpoint = 'https://apiv3.arveoli.com/api/region/origins/jne?query='.$city;
+			self::$endpoint = 'https://sandbox2.arveoli.com/api/region/origins/'.$expedition.'?query='.$city;
 			self::$method 	= 'GET';
 
 			$get_response = self::do_request();
@@ -172,11 +173,12 @@ class ARVEOLI extends \SCOD_Shipping\API {
      *
      * @return 	(array|WP_Error) The response array or a WP_Error on failure
      */
-	public function get_destination( string $city, string $district ) {
+	public function get_destination( string $expedition, string $city, string $district ) {
 
 		try {
 
-			self::$endpoint = 'https://apiv3.arveoli.com/api/region/destinations/jne/'.$city.'/'.$district;
+			// self::$endpoint = 'https://apiv3.arveoli.com/api/region/destinations/jne/'.$city.'/'.$district;
+			self::$endpoint = 'https://sandbox2.arveoli.com/api/region/destinations/'.$expedition.'/'.$city.'/'.$district;
 			self::$method 	= 'GET';
 
 			$get_response = self::do_request();
@@ -236,7 +238,8 @@ class ARVEOLI extends \SCOD_Shipping\API {
 
 		try {
 
-			self::$endpoint = 'https://apiv3.arveoli.com/api/tariff/check';
+			// self::$endpoint = 'https://apiv3.arveoli.com/api/tariff/check';
+			self::$endpoint = 'https://sandbox2.arveoli.com/api/tariff/check';
 			self::$method 	= 'POST';
 
 			$tariffDataArray = array(
@@ -302,7 +305,8 @@ class ARVEOLI extends \SCOD_Shipping\API {
 		
 		try {
 
-			self::$endpoint = 'https://apiv3.arveoli.com/api/orders?ordertype=pickup';
+			// self::$endpoint = 'https://apiv3.arveoli.com/api/orders?ordertype=pickup';
+			self::$endpoint = 'https://sandbox2.arveoli.com/api/orders?ordertype=pickup';
 			self::$method 	= 'POST';
 
 			$pickupDataArray = array(
@@ -353,14 +357,16 @@ class ARVEOLI extends \SCOD_Shipping\API {
 				    "province" => $pickupParams['shipperProvince'],
 				    "service"  => 'Reguler',
 				    "vehicle"  => "MOTOR"
-			  	)
+			  	),
+			  	"vendor" => array(
+			        "member_id"   => "",
+			        "member_name" => ""
+			    )
 			);
 
 			self::$body = $pickupDataArray;
 
 			$get_response = self::do_request();
-
-			error_log(print_r($get_response, true));
 
 			if ( ! is_wp_error( $get_response ) ) :
 
@@ -411,15 +417,15 @@ class ARVEOLI extends \SCOD_Shipping\API {
      *
      * @return 	(array|WP_Error) The response array or a WP_Error on failure
      */
-	public function get_tracking( string $expedition, string $tracking_number ) {
+	public function get_tracking( string $tracking_number ) {
 
 		try {
 
-			self::$endpoint = 'https://apiv3.arveoli.com/api/orders/track';
+			// self::$endpoint = 'https://apiv3.arveoli.com/api/orders/track';
+			self::$endpoint = 'https://sandbox2.arveoli.com/api/orders/track';
 			self::$method 	= 'POST';
 
 			$trackingDataArray = array(
-				"expedition" => $expedition,
 			  	"cnote" 	 => $tracking_number
 			);
 
@@ -435,7 +441,7 @@ class ARVEOLI extends \SCOD_Shipping\API {
 						
 						if( isset( $tracking ) ) {
 
-							return $tracking;
+							return $tracking->data;
 
 						}
 
